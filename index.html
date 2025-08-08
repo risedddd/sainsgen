@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Sainsbury's Barcode Generator</title>
 <style>
   body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f47738;
+    background-color: #f47738; /* solid orange */
     color: white;
     text-align: center;
   }
 
-  /* Static watermark background */
+  /* Static watermark background (clearer) */
   .watermark {
     position: fixed;
     top: 0;
@@ -22,15 +22,16 @@
     height: 100%;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.4;
   }
   .watermark span {
     position: absolute;
-    color: rgba(255, 255, 255, 0.15);
-    font-size: 24px;
-    font-weight: bold;
+    color: rgba(255,255,255,0.35);
+    font-size: 40px;
+    font-weight: 800;
     transform: rotate(-30deg);
     white-space: nowrap;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    user-select: none;
   }
 
   /* Main container */
@@ -41,21 +42,25 @@
     color: #333;
     padding: 2rem;
     border-radius: 1rem;
-    max-width: 500px;
+    max-width: 520px;
     margin: 50px auto;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
 
   input, button {
-    padding: 0.5rem;
+    padding: 0.6rem;
     font-size: 1rem;
     margin: 0.5rem 0;
     width: 100%;
+    box-sizing: border-box;
   }
 
   canvas {
     margin-top: 1rem;
     background: #fff;
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
   }
 
   .note {
@@ -77,6 +82,32 @@
 
   /* Hide generator until key entered */
   #mainContent { display: none; }
+
+  /* Floating Discord button */
+  .discord-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #5865F2;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .discord-btn:hover {
+    background-color: #4752C4;
+  }
+  .discord-btn svg {
+    width: 32px;
+    height: 32px;
+    fill: white;
+  }
 </style>
 </head>
 <body>
@@ -89,7 +120,7 @@
   <h2>Enter Access Key</h2>
   <input type="password" id="keyInput" placeholder="Enter key">
   <button onclick="checkKey()">Submit</button>
-  <p id="errorMsg" style="color:red;"></p>
+  <p id="errorMsg" style="color:red;margin-top:8px;"></p>
 </div>
 
 <!-- Main generator -->
@@ -108,35 +139,50 @@
     <input type="number" id="price" placeholder="Enter price (e.g., 100 = £1.00)" min="30" max="9999">
     <button onclick="generateBarcode()">Generate Barcode</button>
     <div class="note">most 30p barcodes are patched</div>
-    <canvas id="barcodeCanvas"></canvas>
+    <canvas id="barcodeCanvas" width="600" height="200"></canvas>
     <div class="link-under-canvas">
       <a href="https://discord.gg/thesellhub" target="_blank">https://discord.gg/thesellhub</a>
     </div>
-    <a id="downloadLink" download="barcode.png"><button>Download as PNG</button></a>
+    <a id="downloadLink" download="barcode.png"><button id="downloadBtn">Download as PNG</button></a>
   </div>
+</div>
+
+<!-- Floating Discord button -->
+<div class="discord-btn" onclick="window.open('https://discord.gg/thesellhub','_blank')">
+  <svg viewBox="0 0 245 240">
+    <path d="M104.4 104.5c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.6-11.1-10.2-11.1zm36.2 0c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.6-11.1-10.2-11.1z"/>
+    <path d="M189.5 20h-134C24.4 20 0 44.3 0 73.3v93.4c0 29 24.4 53.3 55.5 53.3h111.4l-5.2-18.1 12.5 11.6 11.8 10.9 20.8 19.1V73.3C206.8 44.3 182.5 20 153.4 20zm-38.2 128s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-26-0.1-5.7-1.1-10.7-2.6-14.8-4.3-2.3-0.9-4.8-2-7.3-3.4-0.3-0.2-0.6-0.3-0.9-0.5-0.2-0.1-0.3-0.2-0.4-0.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-0.7-30.5-15.1-30.5-15.1 0-31.9 14.4-57.8 14.4-57.8 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-3c10.7-4.7 19.3-6 22.8-6.3 0.6-0.1 1.1-0.2 1.7-0.2 6.1-0.2 12.6-0.2 19.4 0.6 9.2 1 19.1 3.5 29.1 8.6 0 0-7.9-7.5-24.8-12.7l1.4-1.6s13.7-0.3 28.1 10.5c0 0 14.4 25.9 14.4 57.8 0 0-8.5 14.3-30.6 15.1z"/>
+  </svg>
 </div>
 
 <script src="barcodes.js"></script>
 <script>
-  // Generate static watermarks like CouponHQ
-  const wmDiv = document.getElementById('watermark');
-  const rows = 10, cols = 10;
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const span = document.createElement('span');
-      span.innerText = '.gg/thesellhub';
-      span.style.top = `${y * 100}px`;
-      span.style.left = `${x * 200}px`;
-      wmDiv.appendChild(span);
+  // Watermark generation
+  (function(){
+    const wmDiv = document.getElementById('watermark');
+    const rows = 8, cols = 6;
+    const xSpacing = 180, ySpacing = 120;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const span = document.createElement('span');
+        span.innerText = '.gg/thesellhub';
+        span.style.left = `${c * xSpacing}px`;
+        span.style.top  = `${r * ySpacing}px`;
+        wmDiv.appendChild(span);
+      }
     }
-  }
+  })();
 
-  // Key check (obfuscated)
+  // Key check (light obfuscation)
+  (function(){
+    const p1 = "Lmdn";
+    const p2 = "L3RoZXNlbGxodWI=";
+    window.__KEY = atob(p1) + atob(p2);
+  })();
+
   function checkKey() {
     const entered = document.getElementById('keyInput').value.trim();
-    const part1 = ".gg";
-    const part2 = "/thesellhub";
-    if (entered === part1 + part2) {
+    if (entered === window.__KEY) {
       document.getElementById('keyScreen').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
     } else {
@@ -144,7 +190,22 @@
     }
   }
 
-  // Barcode generation logic (same as original)
+  // Idle redirect timer
+  let idleTimer;
+  function startIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      window.location.href = "https://guns.lol/rised";
+    }, 7000);
+  }
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+  }
+  document.addEventListener('mousemove', resetIdleTimer);
+  document.addEventListener('keydown', resetIdleTimer);
+  document.addEventListener('click', resetIdleTimer);
+
+  // Barcode generator
   function padLeft(str, length) {
     return str.toString().padStart(length, '0');
   }
@@ -163,13 +224,11 @@
   }
   function generateBarcode() {
     const productInput = document.getElementById('productCode').value;
-    const priceInput = parseInt(document.getElementById('price').value);
-
+    const priceInput = parseInt(document.getElementById('price').value, 10);
     if (isNaN(priceInput) || priceInput < 30 || priceInput > 9999) {
       alert("Price must be between 30 and 9999 (e.g., 100 = £1.00)");
       return;
     }
-
     const numericProduct = productInput.replace(/\D/g, '');
     let productDigits = numericProduct;
     if (productDigits.length === 14) {
@@ -180,12 +239,10 @@
     const baseNumber = `91${productDigits}${paddedPrice}`;
     const checkDigit = calculateCheckDigit(baseNumber);
     const fullBarcode = `${baseNumber}${checkDigit}`;
-
     const canvas = document.getElementById("barcodeCanvas");
     const ctx = canvas.getContext("2d");
     canvas.width = 600;
     canvas.height = 200;
-
     JsBarcode(canvas, fullBarcode, {
       format: "CODE128",
       displayValue: true,
@@ -194,14 +251,17 @@
       height: 100,
       margin: 10
     });
-
     ctx.font = "16px Arial";
     ctx.fillStyle = "black";
     ctx.textAlign = "center";
     ctx.fillText("https://discord.gg/thesellhub", canvas.width / 2, 190);
-
     const downloadLink = document.getElementById("downloadLink");
     downloadLink.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+    // Start idle timer after download button clicked
+    document.getElementById('downloadBtn').onclick = function() {
+      startIdleTimer();
+    };
   }
 </script>
 </body>
