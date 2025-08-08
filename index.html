@@ -1,104 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>sainsgen</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sainsbury's Barcode Generator</title>
+<style>
     body {
-      margin: 0;
-      background-color: orange;
-      color: white;
-      text-align: center;
-      font-family: Arial, sans-serif;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f97316; /* Orange background */
+        overflow-x: hidden;
+        position: relative;
     }
-    #watermarks {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
+
+    /* Watermark background */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+            repeating-linear-gradient(
+                -45deg,
+                transparent 0 60px,
+                rgba(255,255,255,0.25) 60px 61px
+            ),
+            repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 60px
+            );
+        z-index: 0;
     }
-    .watermark {
-      position: absolute;
-      font-size: 18px;
-      color: rgba(255, 255, 255, 0.15);
-      user-select: none;
-      white-space: nowrap;
-      animation: floatWatermark 6s infinite ease-in-out;
+
+    /* Text watermarks */
+    body::after {
+        content: ".gg/thesellhub  .gg/thesellhub  .gg/thesellhub  .gg/thesellhub  .gg/thesellhub";
+        position: fixed;
+        top: -200px;
+        left: -200px;
+        width: 300%;
+        height: 300%;
+        font-size: 40px;
+        font-weight: bold;
+        color: rgba(255,255,255,0.25);
+        transform: rotate(-30deg);
+        line-height: 120px;
+        white-space: pre;
+        z-index: 0;
+        pointer-events: none;
     }
-    @keyframes floatWatermark {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 0.2;
-      }
-      50% {
-        transform: translate(10px, -10px) rotate(10deg);
-        opacity: 0.35;
-      }
-      100% {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 0.2;
-      }
+
+    /* Centered container */
+    .container {
+        background: white;
+        padding: 20px;
+        max-width: 400px;
+        margin: 50px auto;
+        border-radius: 10px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
     }
-    #login, #content {
-      position: relative;
-      z-index: 1;
-    }
-    #content {
-      display: none;
-    }
+
     input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
     }
-  </style>
+
+    .note {
+        margin-top: 10px;
+        font-weight: bold;
+        color: blue;
+    }
+
+    .link {
+        margin-top: 10px;
+        color: #f97316;
+        font-weight: bold;
+    }
+
+    .download-btn {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: lightgray;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+</style>
 </head>
 <body>
-  <div id="watermarks"></div>
 
-  <div id="login">
-    <h2>Enter Access Key</h2>
-    <input type="password" id="keyInput" placeholder="Enter key">
-    <button onclick="checkKey()">Submit</button>
-  </div>
+<div class="container">
+    <h2>Sainsbury's Barcode Generator</h2>
+    <input type="text" placeholder="Enter original product barcode">
+    <input type="text" placeholder="Enter price (e.g., 100 = £1.00)">
+    <button>Generate Barcode</button>
+    <div class="note">most 30p barcodes are patched</div>
+    <div class="link">https://discord.gg/thesellhub</div>
+    <button class="download-btn">Download as PNG</button>
+</div>
 
-  <div id="content">
-    <h1>sainsgen</h1>
-    <p>hello join .gg/thesellhub for more info</p>
-  </div>
-
-  <script>
-    const correctKey = ".gg/thesellhub"; // secret key
-
-    function checkKey() {
-      const enteredKey = document.getElementById("keyInput").value;
-      if (enteredKey === correctKey) {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("content").style.display = "block";
-      } else {
-        alert("Incorrect key");
-      }
-    }
-
-    // Generate 20+ random animated watermarks
-    const wmContainer = document.getElementById("watermarks");
-    for (let i = 0; i < 25; i++) {
-      const wm = document.createElement("div");
-      wm.classList.add("watermark");
-      wm.textContent = ".gg/thesellhub";
-
-      // Random position
-      wm.style.top = Math.random() * 100 + "%";
-      wm.style.left = Math.random() * 100 + "%";
-
-      // Random delay so animations are not in sync
-      wm.style.animationDelay = `${Math.random() * 5}s`;
-
-      wmContainer.appendChild(wm);
-    }
-  </script>
 </body>
 </html>
