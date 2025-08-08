@@ -1,156 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Protected Barcode Generator</title>
+  <title>sainsgen</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f47738;
-      color: #fff;
-      padding: 2rem;
+      background-color: orange;
+      color: white;
       text-align: center;
-      position: relative;
-      overflow-x: hidden;
+      font-family: Arial, sans-serif;
     }
-
-    /* Watermark */
-    body::before {
-      content: ".gg/thesellhub";
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-30deg);
-      font-size: 5rem;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.05);
-      white-space: nowrap;
-      pointer-events: none;
-      z-index: 0;
+    #content {
+      display: none;
     }
-
-    .hidden { display: none; }
-
-    .container {
-      background: #fff;
-      color: #333;
-      padding: 2rem;
-      border-radius: 1rem;
-      max-width: 500px;
-      margin: 0 auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      position: relative;
-      z-index: 1;
-    }
-
     input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin: 0.5rem 0;
-      width: 100%;
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
     }
-
-    canvas { margin-top: 1rem; background: #fff; }
   </style>
 </head>
 <body>
-
-<div id="login-screen">
-  <div class="container">
-    <h1>Enter Access Key</h1>
-    <input type="password" id="accessKey" placeholder="Enter key">
+  <div id="login">
+    <h2>Enter Access Key</h2>
+    <input type="password" id="keyInput" placeholder="Enter key">
     <button onclick="checkKey()">Submit</button>
-    <p id="error" style="color:red;"></p>
   </div>
-</div>
 
-<div id="main-content" class="hidden">
-  <div class="container">
-    <h1>Sainsbury's Barcode Generator</h1>
-    <input type="text" id="productCode" placeholder="Enter original product barcode" maxlength="13" pattern="\d*" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,13)">
-    <input type="number" id="price" placeholder="Enter price (e.g., 100 = £1.00)" min="30" max="9999">
-    <button onclick="generateBarcode()">Generate Barcode</button>
-    <div class="note" style="color:#c00;font-weight:bold;">most 30p barcodes are patched</div>
-    <canvas id="barcodeCanvas"></canvas>
-    <a id="downloadLink" download="barcode.png"><button>Download as PNG</button></a>
+  <div id="content">
+    <h1>sainsgen</h1>
+    <p>hello join .gg/thesellhub for more info</p>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-<script>
-  // Obfuscated key
-  const part1 = "Lmdn"; // ".gg"
-  const part2 = "L3RoZXNlbGxodWI="; // "/thesellhub"
-  const decodedKey = atob(btoa(atob(btoa(part1))) + atob(btoa(part2))).replace(/\s/g, '');
+  <script>
+    const correctKey = ".gg/thesellhub"; // your secret key
 
-  function checkKey() {
-    const entered = document.getElementById("accessKey").value.trim();
-    if (entered === decodedKey) {
-      document.getElementById("login-screen").classList.add("hidden");
-      document.getElementById("main-content").classList.remove("hidden");
-    } else {
-      document.getElementById("error").innerText = "Incorrect key";
+    function checkKey() {
+      const enteredKey = document.getElementById("keyInput").value;
+      if (enteredKey === correctKey) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("content").style.display = "block";
+      } else {
+        alert("Incorrect key");
+      }
     }
-  }
-
-  function padLeft(str, length) {
-    return str.toString().padStart(length, '0');
-  }
-
-  function calculateCheckDigit(input) {
-    let sum = 0;
-    for (let i = 0; i < input.length; i++) {
-      const digit = parseInt(input[input.length - 1 - i], 10);
-      const weight = (i % 2 === 0) ? 3 : 1;
-      sum += digit * weight;
-    }
-    let checkDigit = (10 - (sum % 10)) % 10;
-    if (checkDigit % 2 === 0) checkDigit = (checkDigit + 1) % 10;
-    return checkDigit;
-  }
-
-  function generateBarcode() {
-    const productInput = document.getElementById('productCode').value;
-    const priceInput = parseInt(document.getElementById('price').value);
-
-    if (isNaN(priceInput) || priceInput < 30 || priceInput > 9999) {
-      alert("Price must be between 30 and 9999 (e.g., 100 = £1.00)");
-      return;
-    }
-
-    const numericProduct = productInput.replace(/\D/g, '');
-    let productDigits = numericProduct;
-
-    if (productDigits.length === 14) {
-      productDigits = productDigits.slice(0, -1);
-    }
-    productDigits = padLeft(productDigits, 13);
-
-    const paddedPrice = padLeft(priceInput, 6);
-    const baseNumber = `91${productDigits}${paddedPrice}`;
-    const checkDigit = calculateCheckDigit(baseNumber);
-    const fullBarcode = `${baseNumber}${checkDigit}`;
-
-    const canvas = document.getElementById("barcodeCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 600;
-    canvas.height = 200;
-
-    JsBarcode(canvas, fullBarcode, {
-      format: "CODE128",
-      displayValue: true,
-      fontSize: 18,
-      width: 2,
-      height: 100,
-      margin: 10
-    });
-
-    const downloadLink = document.getElementById("downloadLink");
-    downloadLink.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-  }
-</script>
-
+  </script>
 </body>
-<!-- trigger build -->
 </html>
