@@ -5,105 +5,204 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sainsbury's Barcode Generator</title>
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background-color: #f97316; /* Orange background */
-        overflow-x: hidden;
-        position: relative;
-    }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f47738;
+    color: white;
+    text-align: center;
+  }
 
-    /* Watermark background */
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image:
-            repeating-linear-gradient(
-                -45deg,
-                transparent 0 60px,
-                rgba(255,255,255,0.25) 60px 61px
-            ),
-            repeating-linear-gradient(
-                -45deg,
-                transparent,
-                transparent 60px
-            );
-        z-index: 0;
-    }
+  /* Static watermark background */
+  .watermark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+  .watermark span {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.15);
+    font-size: 24px;
+    font-weight: bold;
+    transform: rotate(-30deg);
+    white-space: nowrap;
+  }
 
-    /* Text watermarks */
-    body::after {
-        content: ".gg/thesellhub  .gg/thesellhub  .gg/thesellhub  .gg/thesellhub  .gg/thesellhub";
-        position: fixed;
-        top: -200px;
-        left: -200px;
-        width: 300%;
-        height: 300%;
-        font-size: 40px;
-        font-weight: bold;
-        color: rgba(255,255,255,0.25);
-        transform: rotate(-30deg);
-        line-height: 120px;
-        white-space: pre;
-        z-index: 0;
-        pointer-events: none;
-    }
+  /* Main container */
+  .container {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    color: #333;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 500px;
+    margin: 50px auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
 
-    /* Centered container */
-    .container {
-        background: white;
-        padding: 20px;
-        max-width: 400px;
-        margin: 50px auto;
-        border-radius: 10px;
-        text-align: center;
-        position: relative;
-        z-index: 1;
-    }
+  input, button {
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+    width: 100%;
+  }
 
-    input, button {
-        width: 100%;
-        padding: 10px;
-        margin-top: 10px;
-    }
+  canvas {
+    margin-top: 1rem;
+    background: #fff;
+  }
 
-    .note {
-        margin-top: 10px;
-        font-weight: bold;
-        color: blue;
-    }
+  .note {
+    color: #c00;
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
 
-    .link {
-        margin-top: 10px;
-        color: #f97316;
-        font-weight: bold;
-    }
+  .link-under-canvas {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
 
-    .download-btn {
-        margin-top: 10px;
-        padding: 10px;
-        background-color: lightgray;
-        border: none;
-        cursor: pointer;
-        width: 100%;
-    }
+  .link-under-canvas a {
+    color: #f47738;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  /* Hide generator until key entered */
+  #mainContent { display: none; }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Sainsbury's Barcode Generator</h2>
-    <input type="text" placeholder="Enter original product barcode">
-    <input type="text" placeholder="Enter price (e.g., 100 = £1.00)">
-    <button>Generate Barcode</button>
-    <div class="note">most 30p barcodes are patched</div>
-    <div class="link">https://discord.gg/thesellhub</div>
-    <button class="download-btn">Download as PNG</button>
+<!-- Watermark background -->
+<div class="watermark" id="watermark"></div>
+
+<!-- Key screen -->
+<div class="container" id="keyScreen">
+  <h2>Enter Access Key</h2>
+  <input type="password" id="keyInput" placeholder="Enter key">
+  <button onclick="checkKey()">Submit</button>
+  <p id="errorMsg" style="color:red;"></p>
 </div>
 
+<!-- Main generator -->
+<div id="mainContent">
+  <div class="container">
+    <h1>Sainsbury's Barcode Generator</h1>
+    <input
+      type="text"
+      id="productCode"
+      placeholder="Enter original product barcode"
+      maxlength="13"
+      pattern="\d*"
+      inputmode="numeric"
+      oninput="this.value=this.value.replace(/\D/g,'').slice(0,13)"
+    >
+    <input type="number" id="price" placeholder="Enter price (e.g., 100 = £1.00)" min="30" max="9999">
+    <button onclick="generateBarcode()">Generate Barcode</button>
+    <div class="note">most 30p barcodes are patched</div>
+    <canvas id="barcodeCanvas"></canvas>
+    <div class="link-under-canvas">
+      <a href="https://discord.gg/thesellhub" target="_blank">https://discord.gg/thesellhub</a>
+    </div>
+    <a id="downloadLink" download="barcode.png"><button>Download as PNG</button></a>
+  </div>
+</div>
+
+<script src="barcodes.js"></script>
+<script>
+  // Generate static watermarks like CouponHQ
+  const wmDiv = document.getElementById('watermark');
+  const rows = 10, cols = 10;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const span = document.createElement('span');
+      span.innerText = '.gg/thesellhub';
+      span.style.top = `${y * 100}px`;
+      span.style.left = `${x * 200}px`;
+      wmDiv.appendChild(span);
+    }
+  }
+
+  // Key check (obfuscated)
+  function checkKey() {
+    const entered = document.getElementById('keyInput').value.trim();
+    const part1 = ".gg";
+    const part2 = "/thesellhub";
+    if (entered === part1 + part2) {
+      document.getElementById('keyScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    } else {
+      document.getElementById('errorMsg').innerText = "Incorrect key";
+    }
+  }
+
+  // Barcode generation logic (same as original)
+  function padLeft(str, length) {
+    return str.toString().padStart(length, '0');
+  }
+  function calculateCheckDigit(input) {
+    let sum = 0;
+    for (let i = 0; i < input.length; i++) {
+      const digit = parseInt(input[input.length - 1 - i], 10);
+      const weight = (i % 2 === 0) ? 3 : 1;
+      sum += digit * weight;
+    }
+    let checkDigit = (10 - (sum % 10)) % 10;
+    if (checkDigit % 2 === 0) {
+      checkDigit = (checkDigit + 1) % 10;
+    }
+    return checkDigit;
+  }
+  function generateBarcode() {
+    const productInput = document.getElementById('productCode').value;
+    const priceInput = parseInt(document.getElementById('price').value);
+
+    if (isNaN(priceInput) || priceInput < 30 || priceInput > 9999) {
+      alert("Price must be between 30 and 9999 (e.g., 100 = £1.00)");
+      return;
+    }
+
+    const numericProduct = productInput.replace(/\D/g, '');
+    let productDigits = numericProduct;
+    if (productDigits.length === 14) {
+      productDigits = productDigits.slice(0, -1);
+    }
+    productDigits = padLeft(productDigits, 13);
+    const paddedPrice = padLeft(priceInput, 6);
+    const baseNumber = `91${productDigits}${paddedPrice}`;
+    const checkDigit = calculateCheckDigit(baseNumber);
+    const fullBarcode = `${baseNumber}${checkDigit}`;
+
+    const canvas = document.getElementById("barcodeCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 600;
+    canvas.height = 200;
+
+    JsBarcode(canvas, fullBarcode, {
+      format: "CODE128",
+      displayValue: true,
+      fontSize: 18,
+      width: 2,
+      height: 100,
+      margin: 10
+    });
+
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText("https://discord.gg/thesellhub", canvas.width / 2, 190);
+
+    const downloadLink = document.getElementById("downloadLink");
+    downloadLink.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+  }
+</script>
 </body>
 </html>
