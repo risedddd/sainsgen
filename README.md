@@ -1,3 +1,3 @@
 # sainsgen
 
-hello join .gg/thesellhub for more info
+hello join .gg/sell for more info
